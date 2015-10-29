@@ -110,3 +110,10 @@ class Graph(Base):
             x.destinations.remove(relation)
             del relation
         del x
+
+    def search_for_property(self, property):
+        items = list(self.nodes.values()) + list(self.relations.values())
+        return [item for item in items if property in item]
+
+    def search_for_value(self, property, value):
+        return [item for item in self.search_for_property(property) if item[property] == value]
