@@ -79,3 +79,37 @@ class Graph(Base):
         else:
             raise LookupError('id {} does not exist'.format(number))
         return r
+
+    def __getitem__(self, item):
+        return self.get_by_id(item)
+
+    # Some methods as defined by wikipedia [https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29]
+    def adjacent(self, x, y):
+        """One way search from x to y"""
+        for relation in x.destinations:
+            if y is relation.destination:
+                return True
+        return False
+
+    def adjacent_twoway(self, x, y):
+        """Is x connected to y? (x->y or y->x)"""
+        if self.adjacent(x, y) or self.adjacent(y, x):
+            return True
+        return False
+
+    def neighbors(self, x):
+        return [relation.destination for relation in x.destinations]
+
+    def neighbors_twoway(self, x):
+        return [relation.destination for relation in x.destinations] + [relation.source for relation in x.sources]
+
+    def remove_node(self, x):
+        for relation in x.sources:
+            relation.source.destinations.remove(relation)
+            x.sources.remove(relation)
+            del relation
+        for relation in x.destinations:
+            relation.destination.sources.remove(relation)
+            x.destinations.remove(relation)
+            del relation
+        del x
