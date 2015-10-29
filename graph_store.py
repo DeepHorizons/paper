@@ -1,16 +1,5 @@
 
 class Base(dict):
-    _next_id = -1
-
-    @staticmethod
-    def _get_new_id():
-        Base._next_id += 1
-        return Base._next_id
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        super().__setattr__('id', Base._get_new_id())
-
     def set_attr(self, key, value):
         """Access to the set attr method since we overwrite it"""
         super().__setattr__(key, value)
@@ -56,11 +45,17 @@ class Graph(Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.set_attr('_next_id', -1)  # Offset by one
+        self.set_attr('id', self._get_new_id())
         self.set_attr('Node', self.Node())
         self.set_attr('Relation', self.Relation())
         self.set_attr('nodes', {})
         self.set_attr('relations', {})
         self.set_attr('data', {})
+
+    def _get_new_id(self):
+        self.set_attr('_next_id', self._next_id + 1)  # Offset by one
+        return self._next_id
 
     def _add_node(self, node):
         self.nodes[node.id] = node
