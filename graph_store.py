@@ -9,53 +9,35 @@ class Base(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = Base._get_new_id()
+        super().__setattr__('id', Base._get_new_id())
+
+    def set_attr(self, key, value):
+        """Access to the set attr method since we overwrite it"""
+        super().__setattr__(key, value)
 
     def __hash__(self):
         return self.id
 
-    # TODO Fix all of these
     def __setitem__(self, key, value):
-        if hasattr(self, 'id'):
-            print('set item')
-            return super().__setitem__(key, value)
-        else:
-            return super().__setitem__(key, value)
+        return super().__setitem__(key, value)
 
-    # TODO Fix all of these
     def __setattr__(self, key, value):
-        if hasattr(self, 'id'):
-            print('set attr')
-            return self.__setitem__(key, value)
-        else:
-            return super().__setattr__(key, value)
+        return self.__setitem__(key, value)
 
-    # TODO Fix all of these
     def __getitem__(self, item):
-        if hasattr(self, 'id'):
-            print('get item')
-            return super().__getitem__(item)
-        else:
-            return super().__getitem__(item)
+        return super().__getitem__(item)
 
-    # TODO Fix all of these
     def __getattr__(self, item):
-        try:
-            self.id
-        except:
-            return super().__getattribute__(item)
-        else:
-            print('get attr')
-            return self.__getitem__(item)
+        return self.__getitem__(item)
 
 
 class Graph(Base):
     def Node(graph):
         class NodeClass(Base):
             def __init__(self, *args, **kwargs):
-                self.sources = []  # TODO make this a set
-                self.destinations = []  # TODO make this a set
                 super().__init__(*args, **kwargs)
+                self.set_attr('sources', [])  # TODO make this a set
+                self.set_attr('destinations', [])  # TODO make this a set
 
                 graph._add_node(self)
         return NodeClass
@@ -63,9 +45,9 @@ class Graph(Base):
     def Relation(graph):
         class RelationClass(Base):
             def __init__(self, source, destination, *args, **kwargs):
-                self.source = source
-                self.destination = destination
                 super().__init__(*args, **kwargs)
+                self.set_attr('source', source)
+                self.set_attr('destination', source)
 
                 source.destinations.append(self)
                 destination.sources.append(self)
@@ -73,12 +55,12 @@ class Graph(Base):
         return RelationClass
 
     def __init__(self, *args, **kwargs):
-        self.Node = self.Node()
-        self.Relation = self.Relation()
-        self.nodes = {}
-        self.relations = {}
-        self.data = {}
         super().__init__(*args, **kwargs)
+        self.set_attr('Node', self.Node())
+        self.set_attr('Relation', self.Relation())
+        self.set_attr('nodes', {})
+        self.set_attr('relations', {})
+        self.set_attr('data', {})
 
     def _add_node(self, node):
         self.nodes[node.id] = node
