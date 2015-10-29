@@ -17,10 +17,7 @@ class Base(dict):
         return super().__getitem__(item)
 
     def __getattr__(self, item):
-        if item not in dir(self):
-            return self.__getitem__(item)
-        else:
-            super().__getattr__(item)
+        return self.__getitem__(item)
 
 
 class Graph(Base):
