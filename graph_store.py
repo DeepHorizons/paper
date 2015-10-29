@@ -24,10 +24,12 @@ class Base(dict):
 
 
 class Graph(Base):
+
     def Node(graph):
         class NodeClass(Base):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
+                self.set_attr('id', graph._get_new_id())
                 self.set_attr('sources', [])  # TODO make this a set
                 self.set_attr('destinations', [])  # TODO make this a set
 
@@ -38,8 +40,9 @@ class Graph(Base):
         class RelationClass(Base):
             def __init__(self, source, destination, *args, **kwargs):
                 super().__init__(*args, **kwargs)
+                self.set_attr('id', graph._get_new_id())
                 self.set_attr('source', source)
-                self.set_attr('destination', source)
+                self.set_attr('destination', destination)
 
                 source.destinations.append(self)
                 destination.sources.append(self)
