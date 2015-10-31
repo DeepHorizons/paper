@@ -101,8 +101,8 @@ class Graph(Base):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.set_attr('id', graph._get_new_id())
-                self.set_attr('sources', [])  # TODO make this a set
-                self.set_attr('destinations', [])  # TODO make this a set
+                self.set_attr('sources', set())
+                self.set_attr('destinations', set())
 
                 graph._add_node(self)
         return NodeClass
@@ -115,8 +115,8 @@ class Graph(Base):
                 self.set_attr('source', source)
                 self.set_attr('destination', destination)
 
-                source.destinations.append(self)
-                destination.sources.append(self)
+                source.destinations.add(self)
+                destination.sources.add(self)
                 graph._add_relation(self)
         return RelationClass
 
