@@ -1,23 +1,97 @@
+import datetime
+
 
 class Base(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._set_last_accessed()
+
+    def _get_current_time(self):
+        return datetime.datetime.now()
+
+    def _set_last_accessed(self):
+        self.set_attr('_last_accessed', self._get_current_time())
+
     def set_attr(self, key, value):
         """Access to the set attr method since we overwrite it"""
         super().__setattr__(key, value)
 
     def __hash__(self):
+        self._set_last_accessed()
         return self.id
 
-    def __setitem__(self, key, value):
-        return super().__setitem__(key, value)
-
     def __setattr__(self, key, value):
+        # No need to set accessed here, is set in __setitem__
         return self.__setitem__(key, value)
 
+    def __getattr__(self, item):
+        # No need to set accessed here, is set in __getitem__
+        return self.__getitem__(item)
+
+    def __getattribute__(self, item):
+        if item != '_last_accessed':
+            super().__setattr__('_last_accessed', datetime.datetime.now())
+        return super().__getattribute__(item)
+
+    def __setitem__(self, key, value):
+        self._set_last_accessed()
+        return super().__setitem__(key, value)
+
     def __getitem__(self, item):
+        self._set_last_accessed()
         return super().__getitem__(item)
 
-    def __getattr__(self, item):
-        return self.__getitem__(item)
+    def _e_dec(func):
+        def inner(self, rhs):
+            self._set_last_accessed()
+            try:
+                rhs._set_last_accessed()
+            except AttributeError:
+                pass
+            return func(self, rhs)
+        return inner
+
+    @_e_dec
+    def __eq__(self, other):
+        return other is self
+
+    def _e(op):
+        def func(self, rhs):
+            self._set_last_accessed()
+            try:
+                rhs._set_last_acessed()
+            except AttributeError:
+                pass
+            if '__' in op:
+                return getattr(super(), '{}'.format(op))(rhs)
+            return getattr(super(), '__{}__'.format(op))(rhs)
+        return func
+
+    __lt__ = _e('__lt__')
+    __le__ = _e('__le__')
+    __gt__ = _e('__gt__')
+    __ge__ = _e('__ge__')
+    __ne__ = _e('__ne__')
+
+    __add__ = _e('__add__')
+    __sub__ = _e('__sub__')
+    __mul__ = _e('__mul__')
+    __truediv__ = _e('__truediv__')
+    __floordiv__ = _e('__floordiv__')
+    __mod__ = _e('__mod__')
+    __divmod__ = _e('__divmod__')
+    __pow__ = _e('__pow__')
+    __lshift__ = _e('__lshift__')
+    __rshift__ = _e('__rshift__')
+    __and__ = _e('__and__')
+    __xor__ = _e('__xor__')
+    __or__ = _e('__or__')
+
+    def __repr__(self):
+        self._set_last_accessed()
+        if self:  # dicts return True when not empty
+            return super().__repr__()
+        return str(self.id)
 
 
 class Graph(Base):
