@@ -96,7 +96,7 @@ class Base(dict):
 
 class Graph(Base):
 
-    def Node(graph):
+    def _node_creator(graph):
         class NodeClass(Base):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
@@ -107,25 +107,29 @@ class Graph(Base):
                 graph._add_node(self)
         return NodeClass
 
-    def Relation(graph):
+    def _relation_creator(graph):
         class RelationClass(Base):
-            def __init__(self, source, destination, *args, **kwargs):
+            def __init__(self, source, label, destination, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.set_attr('id', graph._get_new_id())
+                self.set_attr('label', label)
                 self.set_attr('source', source)
                 self.set_attr('destination', destination)
 
                 source.destinations.add(self)
                 destination.sources.add(self)
                 graph._add_relation(self)
+
+            def __repr__(self):
+                return str(self.label)
         return RelationClass
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_attr('_next_id', -1)  # Offset by one
         self.set_attr('id', self._get_new_id())
-        self.set_attr('Node', self.Node())
-        self.set_attr('Relation', self.Relation())
+        self.set_attr('Node', self._node_creator())
+        self.set_attr('Relation', self._relation_creator())
         self.set_attr('nodes', {})
         self.set_attr('relations', {})
         self.set_attr('data', {})
