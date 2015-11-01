@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 
 class Base(dict):
@@ -130,6 +131,7 @@ class Graph(Base):
         self.set_attr('id', self._get_new_id())
         self.set_attr('Node', self._node_creator())
         self.set_attr('Relation', self._relation_creator())
+        self.set_attr('Search', self._search_creator())
         self.set_attr('nodes', set())
         self.set_attr('relations', set())
         self.set_attr('_cache', {})
@@ -192,9 +194,64 @@ class Graph(Base):
         self.nodes.remove(x)
         return self
 
-    def search_for_property(self, property):
-        items = list(self.nodes.values()) + list(self.relations.values())
-        return [item for item in items if property in item]
+    def _search_creator(graph):
+        class Search(object):
+            def __init__(self):
+                self._search = graph.data.values()
 
-    def search_for_value(self, property, value):
-        return [item for item in self.search_for_property(property) if item[property] == value]
+            def property(self, prop):
+                try:
+                    self._search = (item for item in self._search if prop in item)
+                except AttributeError:
+                    self._search = (item for item in graph.data.values() if prop in item)
+                finally:
+                    return self
+
+            def value(self, prop, value):
+                try:
+                    self._search = (item for item in self._search if item[prop] == value)
+                except KeyError:
+                    self._search = (item for item in self._search if prop in item and item[prop] == value)
+                except AttributeError:
+                    self._search = (item for item in self.get_by_propery(prop) if item[prop] == value)
+                finally:
+                    return self
+
+            def relation_to(self, node, by=None):
+                if by:
+                    self._search = (relation.source for relation in node.sources if relation.lable is by)
+                else:
+                    self._search = (relation.source for relation in node.sources)
+                return self
+
+            def relation_from(self, node, by=None):
+                if by:
+                    self._search = (relation.destination for relation in node.destinations if relation.lable is by)
+                else:
+                    self._search = (relation.destination for relation in node.destinations)
+                return self
+
+            def relation(self, node, by=None):
+                if by:
+                    self._search = itertools.chain((relation.destination for relation in node.destinations if relation.lable is by),
+                                                   (relation.source for relation in node.sources if relation.lable is by))
+                else:
+                    self._search = itertools.chain((relation.destination for relation in node.destinations),
+                                                   (relation.source for relation in node.sources))
+                return self
+
+            def execute(self):
+                try:
+                    return list(self._search)
+                except AttributeError:
+                    return []
+
+            @classmethod
+            def get_by_propery(cls, prop):
+                items = graph.data.values()
+                return [item for item in items if prop in item]
+
+            @classmethod
+            def get_by_value(cls, prop, value):
+                return [item for item in cls.get_by_propery(prop) if item[prop] == value]
+        return Search

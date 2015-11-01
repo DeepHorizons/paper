@@ -25,3 +25,7 @@ alan.job = 'Tech'
 graph.Relation(eric, 'Mentor', josh)
 graph.Relation(eric, 'Co worker', al)
 graph.Relation(josh, 'friend', alan)
+
+graph.Search.get_by_value('name', 'Josh')
+
+graph.Search().property('name').value('name', 'Josh').execute()
