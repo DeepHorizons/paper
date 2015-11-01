@@ -130,8 +130,8 @@ class Graph(Base):
         self.set_attr('id', self._get_new_id())
         self.set_attr('Node', self._node_creator())
         self.set_attr('Relation', self._relation_creator())
-        self.set_attr('nodes', {})
-        self.set_attr('relations', {})
+        self.set_attr('nodes', set())
+        self.set_attr('relations', set())
         self.set_attr('data', {})
 
     def _get_new_id(self):
@@ -139,10 +139,14 @@ class Graph(Base):
         return self._next_id
 
     def _add_node(self, node):
-        self.nodes[node.id] = node
+        self.nodes.add(node)
+        self.data[node.id] = node
+        return self
 
     def _add_relation(self, relation):
-        self.relations[relation.id] = relation
+        self.relations.add(relation)
+        self.data[relation.id] = relation
+        return self
 
     def get_by_id(self, number):
         if self.id == number:
