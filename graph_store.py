@@ -132,6 +132,7 @@ class Graph(Base):
         self.set_attr('Relation', self._relation_creator())
         self.set_attr('nodes', set())
         self.set_attr('relations', set())
+        self.set_attr('_cache', {})
         self.set_attr('data', {})
         self.data[0] = self
 
