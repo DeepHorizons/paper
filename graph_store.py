@@ -161,21 +161,18 @@ class Graph(Base):
     # Some methods as defined by wikipedia [https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29]
     def adjacent(self, x, y):
         """One way search from x to y"""
-        for relation in x.destinations:
-            if y is relation.destination:
-                return True
-        return False
+        return any((y is relation.destination for relation in x.destinations))
 
     def adjacent_twoway(self, x, y):
         """Is x connected to y? (x->y or y->x)"""
-        if self.adjacent(x, y) or self.adjacent(y, x):
-            return True
-        return False
+        return self.adjacent(x, y) or self.adjacent(y, x)
 
     def neighbors(self, x):
+        """ Get all neighbors that are destinations"""
         return [relation.destination for relation in x.destinations]
 
     def neighbors_twoway(self, x):
+        """ Get all neighbors that are sources and destinations"""
         return [relation.destination for relation in x.destinations] + [relation.source for relation in x.sources]
 
     def remove_node(self, x):
