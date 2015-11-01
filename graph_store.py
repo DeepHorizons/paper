@@ -133,6 +133,7 @@ class Graph(Base):
         self.set_attr('nodes', set())
         self.set_attr('relations', set())
         self.set_attr('data', {})
+        self.data[0] = self
 
     def _get_new_id(self):
         self.set_attr('_next_id', self._next_id + 1)  # Offset by one
@@ -141,23 +142,17 @@ class Graph(Base):
     def _add_node(self, node):
         self.nodes.add(node)
         self.data[node.id] = node
+        self._cache['_stale'] = True
         return self
 
     def _add_relation(self, relation):
         self.relations.add(relation)
         self.data[relation.id] = relation
+        self._cache['_stale'] = True
         return self
 
     def get_by_id(self, number):
-        if self.id == number:
-            r = self
-        elif number in self.nodes.keys():
-            r = self.nodes[number]
-        elif number in self.relations.keys():
-            r = self.relations[number]
-        else:
-            raise LookupError('id {} does not exist'.format(number))
-        return r
+        return self.data[number]
 
     def __getitem__(self, item):
         return self.get_by_id(item)
