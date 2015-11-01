@@ -178,13 +178,19 @@ class Graph(Base):
     def remove_node(self, x):
         for relation in x.sources:
             relation.source.destinations.remove(relation)
-            x.sources.remove(relation)
-            del relation
+            self.relations.remove(relation)
+            self.data[relation.id] = None
+            # del relation  # No effect, local scope
+        del x.sources
         for relation in x.destinations:
             relation.destination.sources.remove(relation)
-            x.destinations.remove(relation)
-            del relation
-        del x
+            self.relations.remove(relation)
+            self.data[relation.id] = None
+            # del relation  # No effect, local scope
+        del x.destinations
+        self.data[x.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
+        self.nodes.remove(x)
+        return self
 
     def search_for_property(self, property):
         items = list(self.nodes.values()) + list(self.relations.values())
