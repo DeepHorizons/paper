@@ -140,14 +140,18 @@ class LazyLoadRelation(LazyLoader, LastAccessed, dict):
         super().__setattr__('destination', destination, False)
         super().__setattr__('label', label, False)
 
+    def __sizeof__(self):
+        return super().__sizeof__() + (sys.getsizeof(self.source) + sys.getsizeof(self.destination) +
+                                        sys.getsizeof(self.label))
+
     def __hash__(self):
         return super().__hash__()
 
     def _load(self):
-        if self.id is None:
+        if super().__getattribute__('id') is None:
             raise IndexError('The ID is not set')
         pass  # TODO implement this. Load source and destination
-        self._loaded = True
+        super().__setattr__('_loaded', True, False)
 
     def _store(self, item, value):
         pass  # TODO implement this
