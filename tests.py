@@ -1,5 +1,6 @@
 import graph_store
 import unittest
+import time
 
 
 class TestGraphStore(unittest.TestCase):
@@ -13,18 +14,20 @@ class TestGraphStore(unittest.TestCase):
         node = self.g.Node()
         self.assertEqual(node.id, 1)
         self.assertIn(node.id, self.g.data)
-        self.assertIn(node, self.g.nodes)
         self.assertEqual(node, self.g[1])
         self.assertEqual(node, self.g.get_by_id(1))
 
     def test_node_properties(self):
-        node = self.g.Node()
+        node = self.g.Node(test3=3.14)
         node['test1'] = 5
         self.assertEqual(node['test1'], 5)
         node.test2 = 'a'
         self.assertEqual(node.test2, 'a')
         self.assertEqual(node['test2'], 'a')
         self.assertEqual(node.test1, 5)
+        self.assertEqual(node['test1'], 5)
+        self.assertEqual(node.test3, 3.14)
+        self.assertEqual(node['test3'], 3.14)
 
     def test_relation_creation(self):
         node1 = self.g.Node()
@@ -32,14 +35,30 @@ class TestGraphStore(unittest.TestCase):
         r = self.g.Relation(node1, 'TEST', node2)
         self.assertEqual(r.id, 3)
         self.assertIn(r.id, self.g.data)
-        self.assertIn(r, self.g.relations)
         self.assertEqual(r, self.g[3])
         self.assertEqual(r, self.g.get_by_id(3))
+
+    def test_relation_properties(self):
+        node1 = self.g.Node()
+        node2 = self.g.Node()
+        r = self.g.Relation(node1, 'TEST', node2, test1=1.68)
+        r.test2 = 'value'
+        r['test3'] = 'blah'
+
+        self.assertEqual(r.label, 'TEST')
+        print(r)
+        self.assertEqual(r.test1, 1.68)
+        self.assertEqual(r['test1'], 1.68)
+        self.assertEqual(r.test2, 'value')
+        self.assertEqual(r['test2'], 'value')
+        self.assertEqual(r.test3, 'blah')
+        self.assertEqual(r['test3'], 'blah')
 
     def test_node_relation(self):
         node1 = self.g.Node()
         node2 = self.g.Node()
         r = self.g.Relation(node1, 'TEST', node2)
+
         self.assertIs(node1, r.source)
         self.assertIs(node2, r.destination)
         self.assertIn(r, node1.destinations)
@@ -62,33 +81,24 @@ class TestGraphStore(unittest.TestCase):
 
         # Test that the node was removed
         self.assertNotIn(node2, self.g.data)
-        self.assertNotIn(node2, self.g.nodes)
 
         # Test that relations were removed
         self.assertNotIn(r1, self.g.data)
-        self.assertNotIn(r1, self.g.relations)
         self.assertNotIn(r1, node1.destinations)
 
         self.assertNotIn(r3, self.g.data)
-        self.assertNotIn(r3, self.g.relations)
         self.assertNotIn(r3, node3.sources)
 
         self.assertNotIn(r4, self.g.data)
-        self.assertNotIn(r4, self.g.relations)
         self.assertNotIn(r4, node4.sources)
 
         self.assertNotIn(r5, self.g.data)
-        self.assertNotIn(r5, self.g.relations)
         self.assertNotIn(r5, node1.sources)
 
         self.assertIn(r2.id, self.g.data)
-        self.assertIn(r2, self.g.relations)
         self.assertIn(node1.id, self.g.data)
-        self.assertIn(node1, self.g.nodes)
         self.assertIn(node3.id, self.g.data)
-        self.assertIn(node3, self.g.nodes)
         self.assertIn(node4.id, self.g.data)
-        self.assertIn(node4, self.g.nodes)
 
     def test_adjacent(self):
         node1 = self.g.Node()
@@ -135,6 +145,25 @@ class TestGraphStore(unittest.TestCase):
         self.assertIn(node3, neighbors)
         self.assertIn(node1, neighbors)
         self.assertNotIn(node4, neighbors)
+
+    def test_node_access_time(self):
+        node = self.g.Node()
+        starttime = node._last_accessed
+        time.sleep(0.1)
+        self.assertEqual(node._last_accessed, starttime)
+        1 == node
+        self.assertGreater(node._last_accessed, starttime)
+
+        starttime = node._last_accessed
+        time.sleep(0.01)
+        node == 1
+        self.assertGreater(node._last_accessed, starttime)
+
+        starttime = node._last_accessed
+        time.sleep(0.01)
+        'test' in node
+        self.assertGreater(node._last_accessed, starttime)
+        # TODO add more coverage
 
 
 if __name__ == '__main__':
