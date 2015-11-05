@@ -40,6 +40,11 @@ class Graph(object):
         self._cache = {}
         self.data = {}
 
+    def __sizeof__(self):
+        return super().__sizeof__() + (sys.getsizeof(self._next_id) + sys.getsizeof(self.id) +
+                                       sys.getsizeof(self._cache) + sys.getsizeof(self.data) +
+                                       sum((sys.getsizeof(node) for node in self.data.values())))
+
     def _get_new_id(self):
         self._next_id += 1  # Offset by one
         return self._next_id
@@ -59,11 +64,6 @@ class Graph(object):
 
     def __getitem__(self, item):
         return self.get_by_id(item)
-
-    def __sizeof__(self):
-        return super().__sizeof__() + (sys.getsizeof(self._next_id) + sys.getsizeof(self.id) +
-                                       sys.getsizeof(self._cache) + sys.getsizeof(self.data) +
-                                       sum((sys.getsizeof(node) for node in self.data.values())))
 
     # Some methods as defined by wikipedia [https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29]
     def adjacent(self, x, y):
@@ -167,9 +167,9 @@ class Graph(object):
             @classmethod
             def get_by_propery(cls, prop):
                 items = graph.data.values()
-                return [item for item in items if prop in item]
+                return {item.id: item for item in items if prop in item}
 
             @classmethod
             def get_by_value(cls, prop, value):
-                return [item for item in cls.get_by_propery(prop) if item[prop] == value]
+                return {item.id: item for item in cls.get_by_propery(prop).values() if item[prop] == value}
         return Search
