@@ -85,13 +85,11 @@ class Graph(object):
     def remove_node(self, x):
         for relation in x.sources:
             relation.source.destinations.remove(relation)
-            self.relations.remove(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
         del x.sources
         for relation in x.destinations:
             relation.destination.sources.remove(relation)
-            self.relations.remove(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
         del x.destinations
