@@ -1,4 +1,5 @@
 import itertools
+import sys
 
 import nodes
 
@@ -63,6 +64,11 @@ class Graph(object):
 
     def __getitem__(self, item):
         return self.get_by_id(item)
+
+    def __sizeof__(self):
+        return super().__sizeof__() + (sys.getsizeof(self._next_id) + sys.getsizeof(self.id) +
+                                       sys.getsizeof(self._cache) + sys.getsizeof(self.data) +
+                                       sum((sys.getsizeof(node) for node in self.data.values())))
 
     # Some methods as defined by wikipedia [https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29]
     def adjacent(self, x, y):
