@@ -8,7 +8,9 @@ class Graph(object):
     def _node_creator(graph):
         class NodeClass(nodes.LazyLoadNode):
             def __init__(self, *args, **kwargs):
-                super().__init__(graph._get_new_id(), *args, **kwargs)
+                super().__init__(graph._get_new_id(), *args)
+                for prop in kwargs:
+                    self[prop] = kwargs[prop]
                 graph._add_node(self)
 
         return NodeClass
@@ -16,7 +18,9 @@ class Graph(object):
     def _relation_creator(graph):
         class RelationClass(nodes.LazyLoadRelation):
             def __init__(self, source, label, destination, *args, **kwargs):
-                super().__init__(graph._get_new_id(), source, label, destination, *args, **kwargs)
+                super().__init__(graph._get_new_id(), source, label, destination, *args)
+                for prop in kwargs:
+                    self[prop] = kwargs[prop]
                 source.destinations.add(self)
                 destination.sources.add(self)
                 graph._add_relation(self)
