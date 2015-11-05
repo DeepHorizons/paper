@@ -109,95 +109,65 @@ class Graph(object):
                 self._search = graph.data.values()
 
             def _get_nodes(self):
-                self._search = (node for node in self._search if type(node) is graph.Node)
+                """Filters out everything but nodes from the search"""
+                self._search = (node for node in self._search if isinstance(node, graph.Node))
                 return self
 
             def _get_relations(self):
-                self._search = (relation for relation in self._search if type(relation) is graph.Relation)
+                """Filters out everything but relations from the search"""
+                self._search = (relation for relation in self._search if isinstance(relation, graph.Relation))
                 return self
+
+            def _get_node_iterator(self, node):
+                """Get an iterator of the node if set, otherwise look through all nodes"""
+                return self._get_nodes()._search if not node else (graph.get_by_id(node),) if isinstance(node, int) else (node,)
+
+            def _get_relation_iterator(self, relation):
+                """Get an iterator of the relation if set, otherwise look through all nodes"""
+                return self._get_relations()._search if not relation else (graph.get_by_id(relation),) if isinstance(relation, int) else (relation,)
 
             def property(self, prop):
                 """Get all nodes that have the property"""
-                try:
-                    self._search = (item for item in self._search if prop in item)
-                except AttributeError:
-                    self._search = (item for item in graph.data.values() if prop in item)
-                finally:
-                    return self
+                self._search = (item for item in self._search if prop in item)
+                return self
 
             def value(self, prop, value):
                 """Get all nodes that have the property and that property is equal to the value"""
-                try:
-                    self._search = (item for item in self._search if prop in item and item[prop] == value)
-                except AttributeError:
-                    self._search = (item for item in self.get_by_propery(prop) if item[prop] == value)
-                finally:
-                    return self
+                self._search = (item for item in self._search if prop in item and item[prop] == value)
+                return self
 
             def relations_to(self, node=None, by=None):
                 """Get all nodes related to this node (source -> node)
                 if no node it set, look through the list of nodes in the search
                 if by is set, only get nodes that are related by that value"""
-                if node:
-                    if type(node) is int:
-                        node = graph.get_by_id(node)
-                    if by:
-                        self._search = (relation.source for relation in node.sources if relation.label is by)
-                    else:
-                        self._search = (relation.source for relation in node.sources)
+                if by:
+                    self._search = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by)
                 else:
-                    self._get_nodes()
-                    if by:
-                        self._search = (relation.source for _node in self._search for relation in _node.sources if relation.label is by)
-                    else:
-                        self._search = (relation.source for _node in self._search for relation in _node.sources)
+                    self._search = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources)
                 return self
 
             def relations_from(self, node=None, by=None):
                 """Get all nodes related to this node (node -> dest)
                 if no node it set, look through the list of nodes in the search
                 if by is set, only get nodes that are related by that value"""
-                if node:
-                    if type(node) is int:
-                        node = graph.get_by_id(node)
-                    if by:
-                        self._search = (relation.destination for relation in node.destinations if relation.label is by)
-                    else:
-                        self._search = (relation.destination for relation in node.destinations)
+                if by:
+                    self._search = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by)
                 else:
-                    self._get_nodes()
-                    if by:
-                        self._search = (relation.destination for _node in self._search for relation in _node.destinations if relation.label is by)
-                    else:
-                        self._search = (relation.destination for _node in self._search for relation in _node.destinations)
+                    self._search = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations)
                 return self
 
             def relations(self, node=None, by=None):
-                if node:
-                    if type(node) is int:
-                        node = graph.get_by_id(node)
-                    if by:
-                        self._search = itertools.chain((relation.destination for relation in node.destinations if relation.label is by),
-                                                       (relation.source for relation in node.sources if relation.label is by))
-                    else:
-                        self._search = itertools.chain((relation.destination for relation in node.destinations),
-                                                       (relation.source for relation in node.sources))
+                if by:
+                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by),
+                                                   (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by))
                 else:
-                    self._get_nodes()
-                    if by:
-                        self._search = itertools.chain((relation.destination for _node in self._search for relation in _node.destinations if relation.label is by),
-                                                       (relation.source for _node in self._search for relation in _node.sources if relation.label is by))
-                    else:
-                        self._search = itertools.chain((relation.destination for _node in self._search for relation in _node.destinations),
-                                                       (relation.source for _node in self._search for relation in _node.sources))
+                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations),
+                                                   (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources))
                 return self
 
             def execute(self):
                 """Execute the command"""
-                try:
-                    return {node.id: node for node in self._search}
-                except AttributeError:
-                    return {}
+                return {node.id: node for node in self._search}
 
             @classmethod
             def get_by_propery(cls, prop):
