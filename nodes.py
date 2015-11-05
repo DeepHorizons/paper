@@ -103,6 +103,8 @@ class LastAccessed(object):
     __xor__ = _e('__xor__')
     __or__ = _e('__or__')
 
+    __contains__ = _e('__contains__')
+
 
 class LazyLoadNode(LazyLoader, LastAccessed, dict):
     def __init__(self, _id=None, *args, **kwargs):
