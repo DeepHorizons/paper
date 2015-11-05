@@ -149,6 +149,12 @@ class LazyLoadRelation(LazyLoader, LastAccessed, dict):
     def __hash__(self):
         return super().__hash__()
 
+    def __setattr__(self, key, value):
+        return self.__setitem__(key, value)
+
+    def __getattr__(self, item):
+        return self.__getitem__(item)
+
     def _load(self):
         if super().__getattribute__('id') is None:
             raise IndexError('The ID is not set')
