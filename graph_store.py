@@ -41,7 +41,6 @@ class Graph(object):
         self.relations = set()
         self._cache = {}
         self.data = {}
-        #self.data[0] = self
 
     def _get_new_id(self):
         self._next_id += 1  # Offset by one
@@ -50,13 +49,13 @@ class Graph(object):
     def _add_node(self, node):
         self.nodes.add(node)
         self.data[node.id] = node
-        self._cache['_stale'] = True
+        self._cache.clear()
         return self
 
     def _add_relation(self, relation):
         self.relations.add(relation)
         self.data[relation.id] = relation
-        self._cache['_stale'] = True
+        self._cache.clear()
         return self
 
     def get_by_id(self, number):
