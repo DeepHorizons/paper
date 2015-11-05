@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 
 class LazyLoader(object):
@@ -6,6 +7,9 @@ class LazyLoader(object):
         super().__init__(*args, **kwargs)
         super().__setattr__('id', _id)
         super().__setattr__('_loaded', False)
+
+    def __sizeof__(self):
+        return super().__sizeof__() + sys.getsizeof(self.id) + sys.getsizeof(self._loaded)
 
     def __getattribute__(self, item):
         if item is 'id':
@@ -42,9 +46,10 @@ class LastAccessed(object):
     def _set_last_accessed(self):
         return super().__setattr__('_last_accessed', super().__getattribute__('_get_current_time')())
 
+    def __sizeof__(self):
+        return super().__sizeof__() + sys.getsizeof(self._last_accessed)
+
     def __getattribute__(self, item):
-        if item is '_last_accessed':
-            pass
         super().__getattribute__('_set_last_accessed')() if item not in ('_last_accessed', '_loaded') else None
         return super().__getattribute__(item)
 
@@ -104,6 +109,9 @@ class LazyLoadNode(LazyLoader, LastAccessed, dict):
         super().__init__(_id, *args, **kwargs)
         super().__setattr__('sources', set(), False)
         super().__setattr__('destinations', set(), False)
+
+    def __sizeof__(self):
+        return super().__sizeof__() + (sys.getsizeof(self.sources) + sys.getsizeof(self.destinations))
 
     def __hash__(self):
         return super().__hash__()
