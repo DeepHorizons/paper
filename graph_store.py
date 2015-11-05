@@ -37,8 +37,6 @@ class Graph(object):
         self.Node = self._node_creator()
         self.Relation = self._relation_creator()
         self.Search = self._search_creator()
-        self.nodes = set()
-        self.relations = set()
         self._cache = {}
         self.data = {}
 
@@ -47,13 +45,11 @@ class Graph(object):
         return self._next_id
 
     def _add_node(self, node):
-        self.nodes.add(node)
         self.data[node.id] = node
         self._cache.clear()
         return self
 
     def _add_relation(self, relation):
-        self.relations.add(relation)
         self.data[relation.id] = relation
         self._cache.clear()
         return self
@@ -100,7 +96,6 @@ class Graph(object):
             # del relation  # No effect, local scope
         del x.destinations
         self.data[x.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
-        self.nodes.remove(x)
         return self
 
     def _search_creator(graph):
