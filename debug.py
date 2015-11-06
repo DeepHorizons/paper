@@ -8,7 +8,8 @@ class ProfileContextManager(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.profiler.disable()
-        self.profiler.print_stats()
+        self.profiler.print_stats(1)
+        self.profiler.clear()
 
 
 class TimerContextManager(object):
