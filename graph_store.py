@@ -87,14 +87,30 @@ class Graph(object):
             relation.source.destinations.remove(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
-        del x.sources
         for relation in x.destinations:
             relation.destination.sources.remove(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
-        del x.destinations
         self.data[x.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
+        x._remove()
+        del x
         return self
+
+    def remove_relation(self, relation):
+        relation.source.destinations.remove(relation)
+        relation.destination.source.remove(relation)
+        del relation.source
+        del relation.destination
+        del relation.label
+        self.data[relation.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
+        return self
+
+    def remove(self, item):
+        try:
+            item = self.data[item] if isinstance(item, int) else item
+        except RecursionError:  # Item was already deleted
+            return
+        return self.remove_node(item) if isinstance(item, self.Node) else self.remove_relation(item) if isinstance(item, self.Relation) else None
 
     def _search_creator(graph):
         class Search(object):
@@ -156,6 +172,10 @@ class Graph(object):
                 else:
                     self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations),
                                                    (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources))
+                return self
+
+            def get_by_id(self, number):
+                self._search = (item for item in (graph.get_by_id(int(number)),))
                 return self
 
             def execute(self):
