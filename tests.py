@@ -46,7 +46,6 @@ class TestGraphStore(unittest.TestCase):
         r['test3'] = 'blah'
 
         self.assertEqual(r.label, 'TEST')
-        print(r)
         self.assertEqual(r.test1, 1.68)
         self.assertEqual(r['test1'], 1.68)
         self.assertEqual(r.test2, 'value')
@@ -148,22 +147,37 @@ class TestGraphStore(unittest.TestCase):
 
     def test_node_access_time(self):
         node = self.g.Node()
+        node2 = self.g.Node()
         starttime = node._last_accessed
         time.sleep(0.1)
         self.assertEqual(node._last_accessed, starttime)
-        1 == node
+        _ = 1 == node
         self.assertGreater(node._last_accessed, starttime)
 
         starttime = node._last_accessed
         time.sleep(0.01)
-        node == 1
+        _ = node == 1
         self.assertGreater(node._last_accessed, starttime)
 
         starttime = node._last_accessed
         time.sleep(0.01)
-        'test' in node
+        _ = 'test' in node
         self.assertEqual(node._last_accessed, starttime)
         # TODO add more coverage
+
+        starttime = node._last_accessed
+        starttime2 = node2._last_accessed
+        time.sleep(0.01)
+        _ = node == node2
+        self.assertGreater(node._last_accessed, starttime)
+        self.assertGreater(node2._last_accessed, starttime2)
+
+        starttime = node._last_accessed
+        starttime2 = node2._last_accessed
+        time.sleep(0.01)
+        _ = node2 == node
+        self.assertGreater(node._last_accessed, starttime)
+        self.assertGreater(node2._last_accessed, starttime2)
 
 
 if __name__ == '__main__':
