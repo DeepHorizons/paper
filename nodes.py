@@ -6,7 +6,7 @@ import json
 class LazyLoader(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, 'id', kwargs.pop('id', None))
+        object.__setattr__(self, 'id', kwargs['id'])
         object.__setattr__(self, '_loaded', False)
 
     def __sizeof__(self):
@@ -127,21 +127,10 @@ class LastAccessed(object):
     __or__ = _e('__or__')
 
 
-class Node(object):
-    def __init__(self, _id=None, *args, **kwargs):
+class Node(dict):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, 'id', kwargs.pop('id', None))
-        object.__setattr__(self, 'sources', set())
-        object.__setattr__(self, 'destinations', set())
-
-    def __sizeof__(self):
-        return super().__sizeof__() + (sys.getsizeof(object.__getattribute__(self, 'sources')) +
-                                       sys.getsizeof(object.__getattribute__(self, 'destinations')))
-
-    def _remove(self):
-        del self.sources
-        del self.destinations
-        return super()._remove()
+        object.__setattr__(self, 'id', kwargs['id'])
 
     def __hash__(self):
         return object.__getattribute__(self, 'id')
@@ -153,16 +142,43 @@ class Node(object):
         return self.__getitem__(item)
 
 
-class LazyLoadNode(Node, LazyLoader, LastAccessed, dict):
+class LiteNode(Node):
+    """A lite version of the node"""
     def __init__(self, id=None, *args, **kwargs):
         super().__init__(id=id, *args, **kwargs)
+        object.__setattr__(self, 'sources', set())
+        object.__setattr__(self, 'destinations', set())
+
+
+class LazyLoadNode(LazyLoader, LastAccessed, Node):
+    def __init__(self, id=None, *args, **kwargs):
+        super().__init__(id=id, *args, **kwargs)
+        object.__setattr__(self, 'sources', set())
+        object.__setattr__(self, 'destinations', set())
+
+    def __sizeof__(self):
+        return super().__sizeof__() + (sys.getsizeof(object.__getattribute__(self, 'sources')) +
+                                       sys.getsizeof(object.__getattribute__(self, 'destinations')))
 
     def _remove(self):
+        del self.sources
+        del self.destinations
         super()._remove()
         del self
 
 
-class LazyLoadRelation(LazyLoader, LastAccessed, dict):
+class LiteRelation(Node):
+    def __init__(self, source=None, label=None, destination=None, id=None, *args, **kwargs):
+        super().__init__(id=id, *args, **kwargs)
+        object.__setattr__(self, 'source', source)
+        object.__setattr__(self, 'destination', destination)
+        object.__setattr__(self, 'label', label)
+
+    def __repr__(self):
+        return object.__getattribute__(self, 'label')
+
+
+class LazyLoadRelation(Node, LazyLoader, LastAccessed):
     def __init__(self, source=None, label=None, destination=None, id=None, *args, **kwargs):
         super().__init__(id=id, *args, **kwargs)
         object.__setattr__(self, 'source', source)
@@ -180,11 +196,5 @@ class LazyLoadRelation(LazyLoader, LastAccessed, dict):
         super()._remove()
         del self
 
-    def __hash__(self):
-        return super().__hash__()
-
-    def __setattr__(self, key, value):
-        return self.__setitem__(key, value)
-
-    def __getattr__(self, item):
-        return self.__getitem__(item)
+    def __repr__(self):
+        return object.__getattribute__(self, 'label')

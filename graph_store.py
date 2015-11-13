@@ -7,33 +7,50 @@ import nodes
 class Graph(object):
 
     def _node_creator(graph):
-        class NodeClass(nodes.LazyLoadNode):
-            def __init__(self, *args, **kwargs):
-                super().__init__(id=graph._get_new_id(), *args)
-                for prop in kwargs:
-                    self[prop] = kwargs[prop]
-                graph._add_node(self)
+        if graph.lite:
+            class NodeClass(nodes.LiteNode):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(id=graph._get_new_id(), *args)
+                    for prop in kwargs:
+                        self[prop] = kwargs[prop]
+                    graph._add_node(self)
+        else:
+            class NodeClass(nodes.LazyLoadNode):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(id=graph._get_new_id(), *args)
+                    for prop in kwargs:
+                        self[prop] = kwargs[prop]
+                    graph._add_node(self)
 
         return NodeClass
 
     def _relation_creator(graph):
-        class RelationClass(nodes.LazyLoadRelation):
-            def __init__(self, source, label, destination, *args, **kwargs):
-                super().__init__(source, label, destination, id=graph._get_new_id(), *args)
-                for prop in kwargs:
-                    self[prop] = kwargs[prop]
-                source.destinations.add(self)
-                destination.sources.add(self)
-                graph._add_relation(self)
-
-            def __repr__(self):
-                return str(self.label)
+        if graph.lite:
+            class RelationClass(nodes.LiteRelation):
+                def __init__(self, source, label, destination, *args, **kwargs):
+                    super().__init__(source, label, destination, id=graph._get_new_id(), *args)
+                    for prop in kwargs:
+                        self[prop] = kwargs[prop]
+                    source.destinations.add(self)
+                    destination.sources.add(self)
+                    graph._add_relation(self)
+        else:
+            class RelationClass(nodes.LazyLoadRelation):
+                def __init__(self, source, label, destination, *args, **kwargs):
+                    super().__init__(source, label, destination, id=graph._get_new_id(), *args)
+                    for prop in kwargs:
+                        self[prop] = kwargs[prop]
+                    source.destinations.add(self)
+                    destination.sources.add(self)
+                    graph._add_relation(self)
         return RelationClass
 
     def __init__(self, *args, **kwargs):
+        self.lite = kwargs.pop('lite', False)
         super().__init__(*args, **kwargs)
         self._next_id = -1  # Offset by one
         self.id = self._get_new_id()
+
         self.Node = self._node_creator()
         self.Relation = self._relation_creator()
         self.Search = self._search_creator()
