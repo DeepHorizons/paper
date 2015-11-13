@@ -4,9 +4,9 @@ import json
 
 
 class LazyLoader(object):
-    def __init__(self, _id, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, 'id', _id)
+        object.__setattr__(self, 'id', kwargs.pop('id', None))
         object.__setattr__(self, '_loaded', False)
 
     def __sizeof__(self):
@@ -127,23 +127,24 @@ class LastAccessed(object):
     __or__ = _e('__or__')
 
 
-class LazyLoadNode(LazyLoader, LastAccessed, dict):
+class Node(object):
     def __init__(self, _id=None, *args, **kwargs):
-        super().__init__(_id, *args, **kwargs)
+        super().__init__(*args, **kwargs)
+        object.__setattr__(self, 'id', kwargs.pop('id', None))
         object.__setattr__(self, 'sources', set())
         object.__setattr__(self, 'destinations', set())
 
     def __sizeof__(self):
-        return super().__sizeof__() + (sys.getsizeof(self.sources) + sys.getsizeof(self.destinations))
+        return super().__sizeof__() + (sys.getsizeof(object.__getattribute__(self, 'sources')) +
+                                       sys.getsizeof(object.__getattribute__(self, 'destinations')))
 
     def _remove(self):
         del self.sources
         del self.destinations
-        super()._remove()
-        del self
+        return super()._remove()
 
     def __hash__(self):
-        return super().__hash__()
+        return object.__getattribute__(self, 'id')
 
     def __setattr__(self, key, value):
         return self.__setitem__(key, value)
@@ -152,10 +153,18 @@ class LazyLoadNode(LazyLoader, LastAccessed, dict):
         return self.__getitem__(item)
 
 
-class LazyLoadRelation(LazyLoader, LastAccessed, dict):
+class LazyLoadNode(Node, LazyLoader, LastAccessed, dict):
+    def __init__(self, id=None, *args, **kwargs):
+        super().__init__(id=id, *args, **kwargs)
 
-    def __init__(self, _id=None, source=None, label=None, destination=None, *args, **kwargs):
-        super().__init__(_id, *args, **kwargs)
+    def _remove(self):
+        super()._remove()
+        del self
+
+
+class LazyLoadRelation(LazyLoader, LastAccessed, dict):
+    def __init__(self, source=None, label=None, destination=None, id=None, *args, **kwargs):
+        super().__init__(id=id, *args, **kwargs)
         object.__setattr__(self, 'source', source)
         object.__setattr__(self, 'destination', destination)
         object.__setattr__(self, 'label', label)
