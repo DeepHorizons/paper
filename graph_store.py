@@ -133,50 +133,17 @@ class Graph(object):
 
     def _search_creator(graph):
         class Search(object):
-            class CacheGenerator(object):
-                def __init__(self, cache, value, generator):
-                    self.cache = cache
-                    self.value = value
-                    self.generator = generator
-                    self.list = []
-
-                def __iter__(self):
-                    return self
-
-                def __next__(self):
-                    try:
-                        item = next(self.generator)
-                    except StopIteration as e:
-                        self.cache['result'] = self.list
-                        raise e
-                    else:
-                        self.list.append(item)
-                        return item
-
             def __init__(self):
                 self._search = graph.data.values()
-                self.cache = graph._cache
-
-            def _getiterator(self, key, gen):
-                if key in self.cache:
-                    return self.cache[key]['result']
-                else:
-                    self.cache[key] = {}
-                    self.cache = self.cache[key]
-                    return self.CacheGenerator(self.cache, key, gen)
 
             def _get_nodes(self):
                 """Filters out everything but nodes from the search"""
-                key = (self._get_nodes.__name__)
-                gen = (node for node in self._search if isinstance(node, graph.Node))
-                self._search = self._getiterator(key, gen)
+                self._search = (node for node in self._search if isinstance(node, graph.Node))
                 return self
 
             def _get_relations(self):
                 """Filters out everything but relations from the search"""
-                key = (self._get_relations.__name__)
-                gen = (relation for relation in self._search if isinstance(relation, graph.Relation))
-                self._search = self._getiterator(key, gen)
+                self._search = (relation for relation in self._search if isinstance(relation, graph.Relation))
                 return self
 
             def _get_node_iterator(self, node):
@@ -189,55 +156,41 @@ class Graph(object):
 
             def property(self, prop):
                 """Get all nodes that have the property"""
-                key = (self.property.__name__, prop)
-                gen = (item for item in self._search if prop in item)
-                self._search = self._getiterator(key, gen)
+                self._search = (item for item in self._search if prop in item)
                 return self
 
             def value(self, prop, value):
                 """Get all nodes that have the property and that property is equal to the value"""
-                key = (self.value.__name__, prop, value)
-                gen = (item for item in self._search if prop in item and item[prop] == value)
-                self._search = self._getiterator(key, gen)
+                self._search = (item for item in self._search if prop in item and item[prop] == value)
                 return self
 
             def relations_to(self, node=None, by=None):
                 """Get all nodes related to this node (source -> node)
                 if no node it set, look through the list of nodes in the search
                 if by is set, only get nodes that are related by that value"""
-                key = (self.relations_to.__name__, node, by)
                 if by:
-                    gen = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by)
+                    self._search = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by)
                 else:
-                    gen = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources)
-                self._search = self._getiterator(key, gen)
+                    self._search = (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources)
                 return self
 
             def relations_from(self, node=None, by=None):
                 """Get all nodes related to this node (node -> dest)
                 if no node it set, look through the list of nodes in the search
                 if by is set, only get nodes that are related by that value"""
-                key = (self.relations_from.__name__, node, by)
                 if by:
-                    gen = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by)
+                    self._search = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by)
                 else:
-                    gen = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations)
-                self._search = self._getiterator(key, gen)
+                    self._search = (relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations)
                 return self
 
             def relations(self, node=None, by=None):
-                key = (self.relations.__name__, node, by)
                 if by:
-                    gen = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by),
+                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by),
                                                    (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by))
                 else:
-                    gen = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations),
+                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations),
                                                    (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources))
-                self._search = self._getiterator(key, gen)
-                return self
-
-            def get_by_id(self, number):
-                self._search = (item for item in (graph.get_by_id(int(number)),))
                 return self
 
             def execute(self):
@@ -252,4 +205,90 @@ class Graph(object):
             @classmethod
             def get_by_value(cls, prop, value):
                 return {item.id: item for item in cls.get_by_propery(prop).values() if item[prop] == value}
+
+        if graph.cache:
+            class Search(Search):
+                class CacheGenerator(object):
+                    def __init__(self, cache, value, generator):
+                        self.cache = cache
+                        self.value = value
+                        self.generator = generator
+                        self.list = []
+
+                    def __iter__(self):
+                        return self
+
+                    def __next__(self):
+                        try:
+                            item = next(self.generator)
+                        except StopIteration as e:
+                            self.cache['result'] = self.list
+                            raise e
+                        else:
+                            self.list.append(item)
+                            return item
+
+                def __init__(self):
+                    super().__init__()
+                    self.cache = graph._cache
+
+                def _getiterator(self, key, gen):
+                    if key in self.cache:
+                        return self.cache[key]['result']
+                    else:
+                        self.cache[key] = {}
+                        self.cache = self.cache[key]
+                        return self.CacheGenerator(self.cache, key, gen)
+
+                def _get_nodes(self):
+                    """Filters out everything but nodes from the search"""
+                    key = (self._get_nodes.__name__)
+                    gen = super()._get_nodes()._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def _get_relations(self):
+                    """Filters out everything but relations from the search"""
+                    key = (self._get_relations.__name__)
+                    gen = super()._get_relations()._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def property(self, prop):
+                    """Get all nodes that have the property"""
+                    key = (self.property.__name__, prop)
+                    gen = super().property(prop)._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def value(self, prop, value):
+                    """Get all nodes that have the property and that property is equal to the value"""
+                    key = (self.value.__name__, prop, value)
+                    gen = super().value(prop, value)._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def relations_to(self, node=None, by=None):
+                    """Get all nodes related to this node (source -> node)
+                    if no node it set, look through the list of nodes in the search
+                    if by is set, only get nodes that are related by that value"""
+                    key = (self.relations_to.__name__, node, by)
+                    gen = super().relations_to(node, by)._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def relations_from(self, node=None, by=None):
+                    """Get all nodes related to this node (node -> dest)
+                    if no node it set, look through the list of nodes in the search
+                    if by is set, only get nodes that are related by that value"""
+                    key = (self.relations_from.__name__, node, by)
+                    gen = super().relations_from(node, by)._search
+                    self._search = self._getiterator(key, gen)
+                    return self
+
+                def relations(self, node=None, by=None):
+                    key = (self.relations.__name__, node, by)
+                    gen = super().relations(node, by)._search
+                    self._search = self._getiterator(key, gen)
+                    return self
         return Search
