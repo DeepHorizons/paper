@@ -50,7 +50,7 @@ class Graph(object):
         return self._next_id
 
     def _add_node(self, node):
-        self.data[super(nodes.Base, node).__getattribute__('id')] = node
+        self.data[object.__getattribute__(node, 'id')] = node
         self._cache.clear()
         return self
 

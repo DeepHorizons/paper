@@ -3,19 +3,11 @@ import sys
 import json
 
 
-class Base(object):
-    """Base object so we can set attributes without setting the access time"""
-
-    def _remove(self):
-        return
-
-
-
-class LazyLoader(Base):
+class LazyLoader(object):
     def __init__(self, _id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        super(Base, self).__setattr__('id', _id)
-        super(Base, self).__setattr__('_loaded', False)
+        object.__setattr__(self, 'id', _id)
+        object.__setattr__(self, '_loaded', False)
 
     def __sizeof__(self):
         return super().__sizeof__() + sys.getsizeof(self.id) + sys.getsizeof(self._loaded)
@@ -27,29 +19,29 @@ class LazyLoader(Base):
 
     def __getattribute__(self, item):
         if item is 'id':
-            return super(Base, self).__getattribute__('id')
-        if not super(Base, self).__getattribute__('_loaded'):
-            super(Base, self).__getattribute__('_load')()
-        return super(Base, self).__getattribute__(item)
+            return object.__getattribute__(self, 'id')
+        if not object.__getattribute__(self, '_loaded'):
+            object.__getattribute__(self, '_load')()
+        return super().__getattribute__(item)
 
     def __setattr__(self, key, value):
-        super(object, self).__getattribute__('_store')(key, value)
-        return super(Base, self).__setattr__(key, value)
+        object.__getattribute__(self, '_store')(key, value)
+        return super().__setattr__(key, value)
 
     def __setitem__(self, key, value):
-        super(Base, self).__getattribute__('_store')(key, value)
+        object.__getattribute__(self, '_store')(key, value)
         return super().__setitem__(key, value)
 
     def __getitem__(self, item):
-        if not super(Base, self).__getattribute__('_loaded'):
-            super(Base, self).__getattribute__('_load')()
+        if not object.__getattribute__(self, '_loaded'):
+            object.__getattribute__(self, '_load')()
         return super().__getitem__(item)
 
     def _load(self):
-        if super(Base, self).__getattribute__('id') is None:
+        if object.__getattribute__(self, 'id') is None:
             raise IndexError('The ID is not set')
         pass  # TODO implement this. Load source and destination
-        super(Base, self).__setattr__('_loaded', True)
+        object.__setattr__(self, '_loaded', True)
 
     def _store(self, key, value):
         pass
@@ -58,15 +50,19 @@ class LazyLoader(Base):
         pass
 
     def __hash__(self):
-        return super(Base, self).__getattribute__('id')  # Dont update last accessed when hashing
+        return object.__getattribute__(self, 'id')  # Dont update last accessed when hashing
 
 
-class LastAccessed(Base):
+class LastAccessed(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        object.__getattribute__(self, '_set_last_accessed')()
+
     def _get_current_time(self):
         return datetime.datetime.now()
 
     def _set_last_accessed(self):
-        return super(Base, self).__setattr__('_last_accessed', super(Base, self).__getattribute__('_get_current_time')())
+        return object.__setattr__(self, '_last_accessed', object.__getattribute__(self, '_get_current_time')())
 
     def __sizeof__(self):
         return super().__sizeof__() + sys.getsizeof(self._last_accessed)
@@ -77,16 +73,16 @@ class LastAccessed(Base):
 
     def __getattribute__(self, item):
         if item not in ('_last_accessed', '_loaded'):
-            super(Base, self).__getattribute__('_set_last_accessed')()
-        return super(Base, self).__getattribute__(item)
+            object.__getattribute__(self, '_set_last_accessed')()
+        return super().__getattribute__(item)
 
     def __setitem__(self, key, value):
-        super(Base, self).__getattribute__('_set_last_accessed')()
-        return super(Base, self).__setitem__(key, value)
+        object.__getattribute__(self, '_set_last_accessed')()
+        return super().__setitem__(key, value)
 
     def __getitem__(self, item):
-        super(Base, self).__getattribute__('_set_last_accessed')()
-        return super(Base, self).__getitem__(item)
+        object.__getattribute__(self, '_set_last_accessed')()
+        return super().__getitem__(item)
 
     def _e_dec(func):
         def inner(self, rhs):
@@ -104,9 +100,9 @@ class LastAccessed(Base):
 
     def _e(op):
         def func(self, rhs):
-            super(Base, self).__getattribute__('_set_last_accessed')()
+            object.__getattribute__(self, '_set_last_accessed')()
             if isinstance(rhs, LastAccessed):
-                super(Base, rhs).__getattribute__('_set_last_accessed')()
+                object.__getattribute__(rhs, '_set_last_accessed')()
             return getattr(super(), '{}'.format(op))(rhs)
         return func
 
@@ -134,8 +130,8 @@ class LastAccessed(Base):
 class LazyLoadNode(LazyLoader, LastAccessed, dict):
     def __init__(self, _id=None, *args, **kwargs):
         super().__init__(_id, *args, **kwargs)
-        super(Base, self).__setattr__('sources', set())
-        super(Base, self).__setattr__('destinations', set())
+        object.__setattr__(self, 'sources', set())
+        object.__setattr__(self, 'destinations', set())
 
     def __sizeof__(self):
         return super().__sizeof__() + (sys.getsizeof(self.sources) + sys.getsizeof(self.destinations))
@@ -160,9 +156,9 @@ class LazyLoadRelation(LazyLoader, LastAccessed, dict):
 
     def __init__(self, _id=None, source=None, label=None, destination=None, *args, **kwargs):
         super().__init__(_id, *args, **kwargs)
-        super(Base, self).__setattr__('source', source)
-        super(Base, self).__setattr__('destination', destination)
-        super(Base, self).__setattr__('label', label)
+        object.__setattr__(self, 'source', source)
+        object.__setattr__(self, 'destination', destination)
+        object.__setattr__(self, 'label', label)
 
     def __sizeof__(self):
         return super().__sizeof__() + (sys.getsizeof(self.source) + sys.getsizeof(self.destination) +
