@@ -19,7 +19,7 @@ class GraphAccces(object):
         print(vpath)
         if vpath[0] in self.funcs:
             try:
-                cherrypy.request.params['search'] = self.funcs[vpath[0]](vpath[1], vpath[2])
+                cherrypy.request.params['search'] = self.funcs[vpath[0]](*vpath[1:])
             except TypeError as e:
                 print(e)
                 cherrypy.request.params['error'] = '{}'.format(e)
@@ -30,11 +30,18 @@ class GraphAccces(object):
 
     @cherrypy.expose
     def index(self, *args, **kwargs):
+        if 'search' in cherrypy.request.params:
+            result = cherrypy.request.params['search'].execute()
+            print('result', result)
+            reply = {'result': list(result.keys())}
+            if 'data' in cherrypy.request.params:
+                reply['data'] = result
+            return '{}'.format(json.dumps(reply))
         if 'error' in cherrypy.request.params:
             return '{}'.format(cherrypy.request.params['error'])
-        result = cherrypy.request.params['search'].execute()
-        print('result', result)
-        return '{}'.format(json.dumps(result))
+        funcs = [i for i in dir(self.graph.Search) if not i.startswith('_') and i is not 'execute']
+        reply = {'commands': funcs}
+        return '{}'.format(json.dumps(reply, sort_keys=True, indent=4))
 
 if __name__ == '__main__':
     cherrypy.quickstart(GraphAccces())
