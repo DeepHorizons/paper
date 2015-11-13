@@ -162,7 +162,7 @@ class TestGraphStore(unittest.TestCase):
         starttime = node._last_accessed
         time.sleep(0.01)
         'test' in node
-        self.assertGreater(node._last_accessed, starttime)
+        self.assertEqual(node._last_accessed, starttime)
         # TODO add more coverage
 
 
