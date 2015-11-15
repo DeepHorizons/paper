@@ -9,6 +9,9 @@ class LazyLoader(object):
         object.__setattr__(self, 'id', kwargs['id'])
         object.__setattr__(self, '_loaded', False)
 
+    def __hash__(self):
+        return object.__getattribute__(self, 'id')
+
     def __sizeof__(self):
         return super().__sizeof__() + sys.getsizeof(self.id) + sys.getsizeof(self._loaded)
 
