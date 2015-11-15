@@ -89,11 +89,11 @@ class Graph(object):
 
     def remove_node(self, x):
         for relation in x.sources:
-            relation.source.destinations.remove(relation)
+            relation.source.remove_destination(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
         for relation in x.destinations:
-            relation.destination.sources.remove(relation)
+            relation.destination.remove_source(relation)
             self.data[relation.id] = None
             # del relation  # No effect, local scope
         self.data[x.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
@@ -102,8 +102,8 @@ class Graph(object):
         return self
 
     def remove_relation(self, relation):
-        relation.source.destinations.remove(relation)
-        relation.destination.source.remove(relation)
+        relation.source.remove_destination(relation)
+        relation.destination.remove_source(relation)
         del relation.source
         del relation.destination
         del relation.label

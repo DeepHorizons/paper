@@ -143,8 +143,20 @@ class LiteNode(Node):
     """A lite version of the node"""
     def __init__(self, id=None, *args, **kwargs):
         super().__init__(id=id, *args, **kwargs)
-        object.__setattr__(self, 'sources', set())
-        object.__setattr__(self, 'destinations', set())
+        object.__setattr__(self, 'sources', [])
+        object.__setattr__(self, 'destinations', [])
+
+    def add_source(self, relation):
+        object.__getattribute__(self, 'sources').append(relation)
+
+    def add_destination(self, relation):
+        object.__getattribute__(self, 'destinations').append(relation)
+
+    def remove_source(self, relation):
+        object.__getattribute__(self, 'sources').remove(relation)
+
+    def remove_destination(self, relation):
+        object.__getattribute__(self, 'destinations').remove(relation)
 
 
 class LazyLoadNode(LazyLoader, LastAccessed, Node):
@@ -162,6 +174,18 @@ class LazyLoadNode(LazyLoader, LastAccessed, Node):
         del self.destinations
         super()._remove()
         del self
+
+    def add_source(self, relation):
+        object.__getattribute__(self, 'sources').add(relation)
+
+    def add_destination(self, relation):
+        object.__getattribute__(self, 'destinations').add(relation)
+
+    def remove_source(self, relation):
+        object.__getattribute__(self, 'sources').remove(relation)
+
+    def remove_destination(self, relation):
+        object.__getattribute__(self, 'destinations').remove(relation)
 
 
 class LiteRelation(Node):
