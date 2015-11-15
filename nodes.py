@@ -49,9 +49,6 @@ class LazyLoader(object):
     def _unload(self):
         pass
 
-    def __hash__(self):
-        return object.__getattribute__(self, 'id')  # Dont update last accessed when hashing
-
 
 class LastAccessed(object):
     def __init__(self, *args, **kwargs):
