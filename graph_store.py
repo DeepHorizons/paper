@@ -193,7 +193,7 @@ class Graph(object):
                 return {item.id: item for item in cls.get_by_propery(prop).values() if item[prop] == value}
 
         if graph.cache:
-            class Search(Search):
+            class SearchCache(Search):
                 class CacheGenerator(object):
                     def __init__(self, cache, value, generator):
                         self.cache = cache
@@ -281,4 +281,5 @@ class Graph(object):
                     gen = super().relations(node, by)._search
                     self._search = self._getiterator(key, gen)
                     return self
+            return SearchCache
         return Search
