@@ -34,6 +34,7 @@ class Graph(object):
     def __init__(self, *args, **kwargs):
         self.lite = kwargs.pop('lite', False)
         self.cache = kwargs.pop('cache', True)
+        self.cache_max_length = kwargs.pop('max_length', float('inf'))
 
         super().__init__(*args, **kwargs)
         self._next_id = -1  # Offset by one
@@ -200,6 +201,7 @@ class Graph(object):
                         self.value = value
                         self.generator = generator
                         self.list = []
+                        self.max_length = graph.cache_max_length
 
                     def __iter__(self):
                         return self
@@ -208,7 +210,8 @@ class Graph(object):
                         try:
                             item = next(self.generator)
                         except StopIteration as e:
-                            self.cache['result'] = self.list
+                            if len(self.list) < self.max_length:
+                                self.cache['result'] = self.list
                             raise e
                         else:
                             self.list.append(item)
