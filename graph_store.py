@@ -148,7 +148,7 @@ class Graph(object):
 
             def value(self, prop, value):
                 """Get all nodes that have the property and that property is equal to the value"""
-                self._search = (item for item in self._search if prop in item and item[prop] == value)
+                self._search = (item for item in self.property(prop)._search if item[prop] == value)
                 return self
 
             def relations_to(self, node=None, by=None):
@@ -172,12 +172,10 @@ class Graph(object):
                 return self
 
             def relations(self, node=None, by=None):
-                if by:
-                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations if relation.label == by),
-                                                   (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources if relation.label == by))
-                else:
-                    self._search = itertools.chain((relation.destination for _node in self._get_node_iterator(node) for relation in _node.destinations),
-                                                   (relation.source for _node in self._get_node_iterator(node) for relation in _node.sources))
+                search = self._search
+                relations_from = self.relations_from(node, by)._search
+                self._search = search  # Reset search as calling the relations_from functions sets the search
+                self._search = itertools.chain(relations_from, self.relations_to(node, by)._search)
                 return self
 
             def execute(self):
