@@ -60,7 +60,7 @@ class Graph(object):
         return self
 
     def _add_relation(self, relation):
-        self.data[relation.id] = relation
+        self.data[object.__getattribute__(relation, 'id')] = relation
         self._cache.clear()
         return self
 
