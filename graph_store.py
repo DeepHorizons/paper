@@ -221,7 +221,7 @@ class Graph(object):
                 def _getiterator(self, key, gen):
                     if key in self.cache:
                         self.cache = self.cache[key]
-                        if 'results' in self.cache:
+                        if 'result' in self.cache:
                             return self.cache['result']
                         else:
                             return self.CacheGenerator(self.cache, key, gen)
