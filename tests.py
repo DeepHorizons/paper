@@ -369,6 +369,37 @@ class TestGraphSearch(unittest.TestCase):
         self.assertNotIn(self.r5, result)
         self.assertNotIn(self.r6, result)
 
+    def test_relations_to_chaining(self):
+        result = self.g.Search().value('name', 'node3').relations_to().execute().values()
+
+        self.assertIn(self.node1, result)
+        self.assertIn(self.node5, result)
+
+        self.assertNotIn(self.node2, result)
+        self.assertNotIn(self.node3, result)
+        self.assertNotIn(self.node4, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
+        result = self.g.Search().value('name', 'node2').relations_to().execute().values()
+
+        self.assertIn(self.node4, result)
+
+        self.assertNotIn(self.node1, result)
+        self.assertNotIn(self.node5, result)
+        self.assertNotIn(self.node2, result)
+        self.assertNotIn(self.node3, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
     def test_relations_from(self):
         result = self.g.Search().relations_from(self.node3).execute().values()
 
@@ -385,6 +416,35 @@ class TestGraphSearch(unittest.TestCase):
         self.assertNotIn(self.r6, result)
 
         result = self.g.Search().relations_from(self.node1).execute().values()
+
+        self.assertIn(self.node4, result)
+        self.assertIn(self.node3, result)
+        self.assertNotIn(self.node1, result)
+        self.assertNotIn(self.node5, result)
+        self.assertNotIn(self.node2, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
+    def test_relations_from_chaining(self):
+        result = self.g.Search().value('name', 'node3').relations_from().execute().values()
+
+        self.assertNotIn(self.node4, result)
+        self.assertNotIn(self.node1, result)
+        self.assertNotIn(self.node5, result)
+        self.assertNotIn(self.node2, result)
+        self.assertNotIn(self.node3, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
+        result = self.g.Search().value('name', 'node1').relations_from().execute().values()
 
         self.assertIn(self.node4, result)
         self.assertIn(self.node3, result)
@@ -415,6 +475,37 @@ class TestGraphSearch(unittest.TestCase):
         self.assertNotIn(self.r6, result)
 
         result = self.g.Search().relations(self.node4).execute().values()
+
+        self.assertIn(self.node1, result)
+        self.assertIn(self.node2, result)
+
+        self.assertNotIn(self.node4, result)
+        self.assertNotIn(self.node3, result)
+        self.assertNotIn(self.node5, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
+    def test_relations_chaining(self):
+        result = self.g.Search().value('name', 'node1').relations().execute().values()
+
+        self.assertIn(self.node4, result)
+        self.assertIn(self.node3, result)
+        self.assertIn(self.node5, result)
+
+        self.assertNotIn(self.node1, result)
+        self.assertNotIn(self.node2, result)
+        self.assertNotIn(self.r1, result)
+        self.assertNotIn(self.r2, result)
+        self.assertNotIn(self.r3, result)
+        self.assertNotIn(self.r4, result)
+        self.assertNotIn(self.r5, result)
+        self.assertNotIn(self.r6, result)
+
+        result = self.g.Search().value('name', 'node4').relations().execute().values()
 
         self.assertIn(self.node1, result)
         self.assertIn(self.node2, result)
