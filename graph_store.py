@@ -98,8 +98,7 @@ class Graph(object):
             self.data[relation.id] = None
             # del relation  # No effect, local scope
         self.data[x.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
-        x._remove()
-        del x
+        self._cache.clear()
         return self
 
     def remove_relation(self, relation):
@@ -109,6 +108,7 @@ class Graph(object):
         del relation.destination
         del relation.label
         self.data[relation.id] = None  # TODO change how deleted nodes are handled. will depend on persistance storage method
+        self._cache.clear()
         return self
 
     def remove(self, item):
