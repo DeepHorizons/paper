@@ -172,9 +172,10 @@ class Graph(object):
                 return self
 
             def relations(self, node=None, by=None):
-                search = self._search
+                search1, search2 = itertools.tee(self._search)
+                self._search = search1
                 relations_from = self.relations_from(node, by)._search
-                self._search = search  # Reset search as calling the relations_from functions sets the search
+                self._search = search2  # Reset search as calling the relations_from functions sets the search
                 self._search = itertools.chain(relations_from, self.relations_to(node, by)._search)
                 return self
 
